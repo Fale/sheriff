@@ -20,8 +20,12 @@ type UserTypeList []UserType
 
 func MarshalUserTypes(version *version.Version, groups []string, users UserTypeList) ([]byte, error) {
 	o := &sheriff.Options{
-		Groups:     groups,
-		GroupName:  "type",
+		Groups: []sheriff.Group{
+			{
+				Values: groups,
+				Name:   "type",
+			},
+		},
 		ApiVersion: version,
 	}
 

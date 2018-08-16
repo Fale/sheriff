@@ -42,7 +42,9 @@ func TestMarshal_GroupsValidGroup(t *testing.T) {
 	}
 
 	o := &Options{
-		Groups: []string{"test"},
+		Groups: []Group{
+			{Values: []string{"test"}},
+		},
 	}
 
 	actualMap, err := Marshal(o, testModel)
@@ -80,7 +82,9 @@ func TestMarshal_GroupsValidGroupOmitEmpty(t *testing.T) {
 	}
 
 	o := &Options{
-		Groups: []string{"test"},
+		Groups: []Group{
+			{Values: []string{"test"}},
+		},
 	}
 
 	actualMap, err := Marshal(o, testModel)
@@ -117,7 +121,9 @@ func TestMarshal_GroupsInvalidGroup(t *testing.T) {
 	}
 
 	o := &Options{
-		Groups: []string{"foo"},
+		Groups: []Group{
+			{Values: []string{"foo"}},
+		},
 	}
 
 	actualMap, err := Marshal(o, testModel)
@@ -317,7 +323,9 @@ func TestMarshal_Recursive(t *testing.T) {
 	}
 
 	o := &Options{
-		Groups: []string{"test"},
+		Groups: []Group{
+			{Values: []string{"test"}},
+		},
 	}
 
 	actualMap, err := Marshal(o, testRecursiveModel)
@@ -362,7 +370,9 @@ func TestMarshal_TimeHack(t *testing.T) {
 		ATime: hackCreationTime,
 	}
 	o := &Options{
-		Groups: []string{"test"},
+		Groups: []Group{
+			{Values: []string{"test"}},
+		},
 	}
 
 	actualMap, err := Marshal(o, tht)
@@ -388,7 +398,9 @@ func TestMarshal_EmptyMap(t *testing.T) {
 		AMap: make(map[string]string),
 	}
 	o := &Options{
-		Groups: []string{"test"},
+		Groups: []Group{
+			{Values: []string{"test"}},
+		},
 	}
 
 	actualMap, err := Marshal(o, emp)
@@ -419,7 +431,11 @@ func TestMarshal_EmbeddedField(t *testing.T) {
 		&TestMarshal_Embedded{"Hello"},
 		"World",
 	}
-	o := &Options{Groups: []string{"test"}}
+	o := &Options{
+		Groups: []Group{
+			{Values: []string{"test"}},
+		},
+	}
 
 	actualMap, err := Marshal(o, v)
 	assert.NoError(t, err)
@@ -450,7 +466,11 @@ func TestMarshal_EmbeddedFieldEmpty(t *testing.T) {
 		&TestMarshal_EmbeddedEmpty{"Hello"},
 		"World",
 	}
-	o := &Options{Groups: []string{"test"}}
+	o := &Options{
+		Groups: []Group{
+			{Values: []string{"test"}},
+		},
+	}
 
 	actualMap, err := Marshal(o, v)
 	assert.NoError(t, err)

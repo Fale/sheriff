@@ -10,15 +10,19 @@ import (
 	"github.com/hashicorp/go-version"
 )
 
-// Options determine which struct fields are being added to the output map.
-type Options struct {
+type Group struct {
 	// Groups determine which fields are getting marshalled based on the groups tag.
 	// A field with multiple groups (comma-separated) will result in marshalling of that
 	// field if one of their groups is specified.
-	Groups []string
+	Values []string
 	// GroupName determine the name of the groups tag.
 	// If not defined, "groups" will be used.
-	GroupName string
+	Name string
+}
+
+// Options determine which struct fields are being added to the output map.
+type Options struct {
+	Groups []Group
 	// ApiVersion sets the API version to use when marshalling.
 	// The tags `since` and `until` use the API version setting.
 	// Specifying the API version as "1.0.0" and having an until setting of "2"
@@ -53,11 +57,6 @@ type Marshaller interface {
 func Marshal(options *Options, data interface{}) (interface{}, error) {
 	v := reflect.ValueOf(data)
 	t := v.Type()
-
-	checkGroups := len(options.Groups) > 0
-	if len(options.GroupName) == 0 {
-		options.GroupName = "groups"
-	}
 
 	if t.Kind() == reflect.Ptr {
 		// follow pointer
@@ -101,13 +100,20 @@ func Marshal(options *Options, data interface{}) (interface{}, error) {
 		// we can skip the group checkif if the field is a composition field
 		isEmbeddedField := field.Anonymous && val.Kind() == reflect.Struct
 		if !isEmbeddedField {
-			if checkGroups {
-				groups := strings.Split(field.Tag.Get(options.GroupName), ",")
-
-				shouldShow := listContains(groups, options.Groups)
-				if !shouldShow || len(groups) == 0 {
-					continue
+			var c bool
+			for _, g := range options.Groups {
+				if len(g.Name) == 0 {
+					g.Name = "groups"
 				}
+				groups := strings.Split(field.Tag.Get(g.Name), ",")
+
+				shouldShow := listContains(groups, g.Values)
+				if !shouldShow || len(groups) == 0 {
+					c = true
+				}
+			}
+			if c {
+				continue
 			}
 
 			if since := field.Tag.Get("since"); since != "" {

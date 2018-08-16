@@ -9,20 +9,24 @@ import (
 	"github.com/liip/sheriff"
 )
 
-type User struct {
-	Username string   `json:"username" groups:"api"`
-	Email    string   `json:"email" groups:"personal"`
-	Name     string   `json:"name" groups:"api"`
-	Roles    []string `json:"roles" groups:"api" since:"2"`
+type UserMultiple struct {
+	Username string   `json:"username" type:"read,list" groups:"api"`
+	Email    string   `json:"email" type:"read" groups:"personal"`
+	Name     string   `json:"name" type:"read,list" groups:"api"`
+	Roles    []string `json:"roles" type:"read" groups:"api" since:"2"`
 }
 
-type UserList []User
+type UserMultipleList []UserMultiple
 
-func MarshalUsers(version *version.Version, groups []string, users UserList) ([]byte, error) {
+func MarshalUserMultiples(version *version.Version, groups []string, types []string, users UserMultipleList) ([]byte, error) {
 	o := &sheriff.Options{
 		Groups: []sheriff.Group{
 			{
 				Values: groups,
+			},
+			{
+				Values: types,
+				Name:   "type",
 			},
 		},
 		ApiVersion: version,
@@ -36,15 +40,15 @@ func MarshalUsers(version *version.Version, groups []string, users UserList) ([]
 	return json.MarshalIndent(data, "", "  ")
 }
 
-func Example() {
-	users := UserList{
-		User{
+func ExampleMultiple() {
+	users := UserMultipleList{
+		UserMultiple{
 			Username: "alice",
 			Email:    "alice@example.org",
 			Name:     "Alice",
 			Roles:    []string{"user", "admin"},
 		},
-		User{
+		UserMultiple{
 			Username: "bob",
 			Email:    "bob@example.org",
 			Name:     "Bob",
@@ -58,25 +62,32 @@ func Example() {
 	}
 	v2, err := version.NewVersion("2.0.0")
 
-	output, err := MarshalUsers(v1, []string{"api"}, users)
+	output, err := MarshalUserMultiples(v1, []string{"api"}, []string{"read"}, users)
 	if err != nil {
 		log.Panic(err)
 	}
 	fmt.Println("Version 1 output:")
 	fmt.Printf("%s\n\n", output)
 
-	output, err = MarshalUsers(v2, []string{"api"}, users)
+	output, err = MarshalUserMultiples(v2, []string{"api"}, []string{"read"}, users)
 	if err != nil {
 		log.Panic(err)
 	}
 	fmt.Println("Version 2 output:")
 	fmt.Printf("%s\n\n", output)
 
-	output, err = MarshalUsers(v2, []string{"api", "personal"}, users)
+	output, err = MarshalUserMultiples(v2, []string{"api", "personal"}, []string{"read"}, users)
 	if err != nil {
 		log.Panic(err)
 	}
 	fmt.Println("Version 2 output with personal group too:")
+	fmt.Printf("%s\n\n", output)
+
+	output, err = MarshalUserMultiples(v2, []string{"api", "personal"}, []string{"list"}, users)
+	if err != nil {
+		log.Panic(err)
+	}
+	fmt.Println("Version 2 output with personal group too in list mode:")
 	fmt.Printf("%s\n\n", output)
 
 	// Output:
@@ -128,6 +139,18 @@ func Example() {
 	//     "roles": [
 	//       "user"
 	//     ],
+	//     "username": "bob"
+	//   }
+	// ]
+	//
+	// Version 2 output with personal group too in list mode:
+	// [
+	//   {
+	//     "name": "Alice",
+	//     "username": "alice"
+	//   },
+	//   {
+	//     "name": "Bob",
 	//     "username": "bob"
 	//   }
 	// ]
